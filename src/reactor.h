@@ -141,7 +141,7 @@ class Reactor : public cyclus::Facility,
   double fuel_pref(cyclus::Material::Ptr m);
 
   bool retired() {
-    return exit_time() != -1 && context()->time() >= exit_time();
+    return exit_time() != -1 && context()->time() > exit_time();
   }
 
   /// Store fuel info index for the given resource received on incommod.
@@ -414,6 +414,15 @@ class Reactor : public cyclus::Facility,
            "be expressed in degrees as a double." \
   }
   double longitude;
+
+  // For new Record Time Series functionality
+  #pragma cyclus var { \
+    "default": "reactor_fuel_demand", \
+    "uilabel": "Demand Tracking String", \
+    "doc": "String used to record the amount of fuel demanded "\
+            "by the reactor at a given timestep" \
+  }
+  std::string reactor_fuel_demand;
 
   cyclus::toolkit::Position coordinates;
 
