@@ -419,6 +419,8 @@ void Reactor::Load() {
   std::stringstream ss;
   ss << n << " assemblies";
   Record("LOAD", ss.str());
+  cyclus::toolkit::RecordTimeSeries<double>(reactor_fuel_demand, this, 
+                                         n*n_assem_batch*assem_size);
   core.Push(fresh.PopN(n));
 }
 

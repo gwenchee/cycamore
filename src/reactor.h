@@ -441,6 +441,15 @@ class Reactor : public cyclus::Facility,
   }
   double longitude;
 
+  // For new Record Time Series functionality
+  #pragma cyclus var { \
+    "default": "reactor_fuel_demand", \
+    "uilabel": "Demand Tracking String", \
+    "doc": "String used to record the amount of fuel demanded "\
+            "by the reactor at a given timestep" \
+  }
+  std::string reactor_fuel_demand;
+
   cyclus::toolkit::Position coordinates;
 
   /// Records an agent's latitude and longitude to the output db
