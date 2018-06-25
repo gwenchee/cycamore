@@ -155,13 +155,6 @@ class Sink
   cyclus::toolkit::ResBuf<cyclus::Resource> inventory;
 
   #pragma cyclus var { \
-    "default": "sink_record_demand", \
-    "uilabel": "Input capacity record time series name", \
-    "doc": "The time series record input capacity name." \
-  }
-  std::string sink_record_demand;
-
-  #pragma cyclus var { \
     "default": 0.0, \
     "uilabel": "Geographical latitude in degrees as a double", \
     "doc": "Latitude of the agent's geographical position. The value should " \

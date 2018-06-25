@@ -53,6 +53,12 @@ void Reactor::InitFrom(cyclus::QueryableBackend* b) {
   namespace tk = cyclus::toolkit;
   tk::CommodityProducer::Add(tk::Commodity(power_name),
                              tk::CommodInfo(power_cap, power_cap));
+
+  for (int i = 0; i < side_products.size(); i++) {
+    tk::CommodityProducer::Add(tk::Commodity(side_products[i]),
+                               tk::CommodInfo(side_product_quantity[i],
+                                              side_product_quantity[i]));
+  }
 }
 
 void Reactor::EnterNotify() {
@@ -64,6 +70,11 @@ void Reactor::EnterNotify() {
     for (int i = 0; i < fuel_outcommods.size(); i++) {
       fuel_prefs.push_back(cyclus::kDefaultPref);
     }
+  }
+
+  // Test if any side products have been defined.
+  if (side_products.size() == 0){
+    hybrid_ = false;
   }
 
   // input consistency checking:
@@ -215,6 +226,8 @@ std::set<cyclus::RequestPortfolio<Material>::Ptr> Reactor::GetMatlRequests() {
       double pref = fuel_prefs[j];
       Composition::Ptr recipe = context()->GetRecipe(fuel_inrecipes[j]);
       m = Material::CreateUntracked(assem_size, recipe);
+      cyclus::toolkit::RecordTimeSeries<double>("demand"+commod, this, 
+                                         assem_size);
       Request<Material>* r = port->AddRequest(m, this, commod, pref, true);
       mreqs.push_back(r);
     }
@@ -236,7 +249,7 @@ void Reactor::GetMatlTrades(
     std::string commod = trades[i].request->commodity();
     Material::Ptr m = mats[commod].back();
     mats[commod].pop_back();
-    cyclus::toolkit::RecordTimeSeries<double>("UsedFuel", this, m->quantity());
+    cyclus::toolkit::RecordTimeSeries<double>("supply"+commod, this, m->quantity());
     responses.push_back(std::make_pair(trades[i], m));
     res_indexes.erase(m->obj_id());
   }
@@ -342,8 +355,11 @@ void Reactor::Tock() {
   if (cycle_step >= 0 && cycle_step < cycle_time &&
       core.count() == n_assem_core) {
     cyclus::toolkit::RecordTimeSeries<cyclus::toolkit::POWER>(this, power_cap);
+    cyclus::toolkit::RecordTimeSeries<double>("supplyPOWER", this, power_cap);
+    RecordSideProduct(true);
   } else {
     cyclus::toolkit::RecordTimeSeries<cyclus::toolkit::POWER>(this, 0);
+    RecordSideProduct(false);
   }
 
   // "if" prevents starting cycle after initial deployment until core is full
@@ -407,8 +423,6 @@ void Reactor::Load() {
   std::stringstream ss;
   ss << n << " assemblies";
   Record("LOAD", ss.str());
-  cyclus::toolkit::RecordTimeSeries<double>(reactor_fuel_demand, this, 
-                                         n*n_assem_batch*assem_size);
   core.Push(fresh.PopN(n));
 }
 
