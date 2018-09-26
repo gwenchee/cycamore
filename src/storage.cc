@@ -185,16 +185,26 @@ void Storage::ProcessMat_(double cap) {
 
   if (!ready.empty()) {
     try {
+        // whichever is smaller throughput or the total quantity in ready 
       double max_pop = std::min(cap, ready.quantity());
-
+        
       if (discrete_handling) {
+          // yes discrete handling 
         if (max_pop == ready.quantity()) {
+            // if cap is the same amount as ready quantity just push it all out :D 
           stocks.Push(ready.PopN(ready.count()));
         } else {
+            // if cap is not the same as ready quantity 
           double cap_pop = ready.Peek()->quantity();
+            // you peek into the quantity of the first material object 
           while (cap_pop <= max_pop && !ready.empty()) {
+              // if the quantity of that material object is smaller than the amount u r allowed to maxpop 
+              // you pop one resource object from ready into stocks  
             stocks.Push(ready.Pop());
+              // if ready is empty, it will add 0 to cap pop, if not it will add the quantity of the next 
+              // material object 
             cap_pop += ready.empty() ? 0 : ready.Peek()->quantity();
+              // once cap pop is larger than max pop, it wont pop no more 
           }
         }
       } else {
